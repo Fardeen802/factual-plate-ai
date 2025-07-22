@@ -1,9 +1,9 @@
 // Update this page (the content is just a fallback if you fail to update the page)
 
-import { SimpleEditor } from '@/components/editor/SimpleEditor';
+import { PlateEditor } from '@/components/editor/PlateEditor';
 
 const Index = () => {
-  return <SimpleEditor />;
+  return <PlateEditor />;
 };
 
 export default Index;
