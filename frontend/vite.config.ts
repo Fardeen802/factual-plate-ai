@@ -16,6 +16,11 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
+  build: {
+    outDir: "dist",
+    assetsDir: "assets",
+    sourcemap: false,
+  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
