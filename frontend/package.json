@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "npm-run-all --parallel start backend",
     "start": "vite",
-    "backend": "cd backend && nodemon server.js",
+    "backend": "cd ../backend && nodemon server.js",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "serve": "node ../backend/server.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

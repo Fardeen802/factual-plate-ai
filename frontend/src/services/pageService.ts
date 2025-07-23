@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:3001/api/pages';
+const API_ROOT = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const API_BASE = `${API_ROOT}/api/pages`;
 
 
 
