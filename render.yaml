@@ -1,9 +1,9 @@
 services:
   - type: web
     name: plate-app
-    rootDir: frontend
-    buildCommand: npm run build
-    startCommand: npm run serve
+    env: node
+    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm ci
+    startCommand: cd backend && npm start
     envVars:
       - key: VITE_API_URL
         sync: false
