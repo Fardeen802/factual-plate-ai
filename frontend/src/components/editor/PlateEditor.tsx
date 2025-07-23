@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getPage, updatePage } from '@/services/pageService';
-import { debounce } from '@/services/debouce';
+import { debounce } from '@/services/debounce';
 
 export const PlateEditor: React.FC = () => {
   const [comments, setComments] = useState<Comment[]>([]);
