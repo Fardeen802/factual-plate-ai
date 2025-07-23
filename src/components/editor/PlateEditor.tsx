@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { createPage, getPage, updatePage, deletePage } from '@/services/pageService';
 
 export const PlateEditor: React.FC = () => {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -30,6 +31,13 @@ export const PlateEditor: React.FC = () => {
   const [isFactChecking, setIsFactChecking] = useState(false);
   const [activeCommentId, setActiveCommentId] = useState<string>();
   const editorRef = useRef<HTMLDivElement>(null);
+  const [pageId, setPageId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [floatingFact, setFloatingFact] = useState<{
+    explanation: string;
+    isFactual: boolean;
+    position: { top: number; left: number } | null;
+  } | null>(null);
 
   const handleFactCheck = useCallback(async () => {
     if (!selectedText.trim()) {
@@ -56,6 +64,28 @@ export const PlateEditor: React.FC = () => {
 
       setComments(prev => [...prev, newComment]);
       setActiveCommentId(newComment.id);
+      // Floating fact message logic
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        // Find editor's bounding rect for relative positioning
+        const editorRect = editorRef.current?.getBoundingClientRect();
+        if (editorRect) {
+          // Adjust for scroll and more accurate placement
+          const scrollY = window.scrollY || window.pageYOffset;
+          const scrollX = window.scrollX || window.pageXOffset;
+          setFloatingFact({
+            explanation: result.explanation,
+            isFactual: result.isFactual,
+            position: {
+     
+              top: rect.bottom + scrollY - editorRect.top + 100,
+              left: rect.left + scrollX - editorRect.left + 200, 
+            },
+          });
+        }
+      }
       
       toast.success('Fact-check completed!');
     } catch (error) {
@@ -64,7 +94,15 @@ export const PlateEditor: React.FC = () => {
     } finally {
       setIsFactChecking(false);
     }
-  }, [selectedText]);
+  }, [selectedText, editorRef, setComments]);
+
+  // Hide floating fact on click anywhere else
+  React.useEffect(() => {
+    if (!floatingFact) return;
+    const handler = () => setFloatingFact(null);
+    window.addEventListener('mousedown', handler);
+    return () => window.removeEventListener('mousedown', handler);
+  }, [floatingFact]);
 
   const handleSelectionChange = useCallback(() => {
     const selection = window.getSelection();
@@ -93,13 +131,46 @@ export const PlateEditor: React.FC = () => {
     return null;
   }, [comments]);
 
-  const saveContent = useCallback(() => {
+  const saveContent = useCallback(async () => {
     const content = getEditorContent();
-    if (content) {
-      localStorage.setItem('plateEditorContent', JSON.stringify(content));
-      toast.success('Content saved!');
+    if (!content) return;
+    setLoading(true);
+    try {
+      let result;
+      if (pageId) {
+        result = await updatePage(pageId, content);
+        toast.success('Content updated in database!');
+      } else {
+        result = await createPage(content);
+        setPageId(result._id);
+        toast.success('Content saved to database!');
+      }
+    } catch (err) {
+      toast.error('Failed to save content to database');
+    } finally {
+      setLoading(false);
     }
-  }, [getEditorContent]);
+  }, [getEditorContent, pageId]);
+
+  const loadContent = useCallback(async () => {
+    if (!pageId) {
+      toast.error('No page ID to load');
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await getPage(pageId);
+      if (editorRef.current && result.content) {
+        editorRef.current.innerHTML = result.content.html || '';
+        setComments(result.content.comments || []);
+        toast.success('Content loaded from database!');
+      }
+    } catch (err) {
+      toast.error('Failed to load content from database');
+    } finally {
+      setLoading(false);
+    }
+  }, [pageId]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -197,9 +268,12 @@ export const PlateEditor: React.FC = () => {
                 <Code className="h-4 w-4" />
               </Button>
 
-              <div className="ml-auto">
-                <Button onClick={saveContent} variant="outline" size="sm">
-                  Save
+              <div className="ml-auto flex gap-2">
+                <Button onClick={saveContent} variant="outline" size="sm" disabled={loading}>
+                  {loading ? 'Saving...' : 'Save'}
+                </Button>
+                <Button onClick={loadContent} variant="outline" size="sm" disabled={loading || !pageId}>
+                  {loading ? 'Loading...' : 'Load'}
                 </Button>
               </div>
             </div>
@@ -207,7 +281,7 @@ export const PlateEditor: React.FC = () => {
             {/* Editor */}
             <div 
               ref={editorRef}
-              className="min-h-[600px] bg-card rounded-lg shadow-sm border p-8 prose prose-slate dark:prose-invert max-w-none focus:outline-none"
+              className="min-h-[600px] bg-card rounded-lg shadow-sm border p-8 prose prose-slate dark:prose-invert max-w-none focus:outline-none relative"
               contentEditable
               onMouseUp={handleSelectionChange}
               onKeyUp={handleSelectionChange}
@@ -226,7 +300,34 @@ export const PlateEditor: React.FC = () => {
                   <p><em>Select any text and click "Ask AI" to fact-check it!</em></p>
                 `
               }}
-            />
+            >
+            </div>
+            {/* Floating Fact Message */}
+            {floatingFact && floatingFact.position && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: floatingFact.position.top,
+                  left: floatingFact.position.left,
+                  zIndex: 100,
+                  minWidth: 240,
+                  maxWidth: 320,
+                  background: floatingFact.isFactual ? 'white' : '#fee2e2',
+                  color: '#111',
+                  border: '1px solid #ccc',
+                  borderRadius: 8,
+                  padding: '12px 16px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                  fontSize: 15,
+                  fontWeight: 500,
+                }}
+              >
+                <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                  {floatingFact.isFactual ? 'Factually Correct' : '⚠️ Possibly Incorrect'}
+                </div>
+                <div>{floatingFact.explanation}</div>
+              </div>
+            )}
           </div>
         </div>
 
