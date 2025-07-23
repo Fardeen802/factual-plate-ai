@@ -2,10 +2,12 @@
   "name": "plate-app",
   "version": "1.0.0",
   "description": "Vite React app with Express backend",
+  "main": "backend/server.js",
   "scripts": {
     "build": "./build.sh",
     "start": "cd backend && npm start",
-    "dev": "cd frontend && npm run dev"
+    "dev": "cd frontend && npm run dev",
+    "postbuild": "echo 'Build completed. Backend will serve frontend from dist folder.'"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -2,8 +2,9 @@ services:
   - type: web
     name: plate-app
     env: node
-    buildCommand: ./build.sh
-    startCommand: cd backend && npm start
+    region: oregon
+    buildCommand: chmod +x ./build.sh && ./build.sh
+    startCommand: npm start
     envVars:
       - key: VITE_API_URL
         sync: false
