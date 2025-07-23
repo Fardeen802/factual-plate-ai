@@ -12,7 +12,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
 
+
     "serve": "node ../backend/server.js"
+
 
   },
   "dependencies": {

@@ -49,10 +49,14 @@ This project is built with:
 
 ## Deployment on Render
 
+
+This repository includes a basic `render.yaml` configuration. Render will detect it automatically, or you can import it manually. It sets up the commands and environment variables below.
+
 Follow these steps to deploy the app on [Render](https://render.com):
 
 1. Create a new **Web Service** from your repository.
 2. Set the **Root Directory** to `frontend` so Render runs commands in that folder.
+
 3. Set the **Build Command** to:
    ```sh
    npm run build
@@ -66,4 +70,5 @@ Follow these steps to deploy the app on [Render](https://render.com):
 6. (Optional) Set `MONGODB_URI` if your backend requires a custom MongoDB
    connection string.
 7. Click **Create Web Service** to deploy.
+
 
