@@ -1,0 +1,13 @@
+{
+  "name": "plate-app",
+  "version": "1.0.0",
+  "description": "Vite React app with Express backend",
+  "scripts": {
+    "build": "./build.sh",
+    "start": "cd backend && npm start",
+    "dev": "cd frontend && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
