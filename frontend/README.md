@@ -47,4 +47,25 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Deployment on Render
 
+This repository includes a basic `render.yaml` configuration. Render will detect it automatically, or you can import it manually. It sets up the commands and environment variables below.
+
+Follow these steps to deploy the app on [Render](https://render.com):
+
+1. Create a new **Web Service** from your repository.
+2. Set the **Root Directory** to `frontend` so Render runs commands in that folder.
+   - If you see an error like `ENOENT: no such file or directory, open '/opt/render/project/src/package.json'`, the root directory was set incorrectly. Make sure it is exactly `frontend`.
+3. Set the **Build Command** to:
+   ```sh
+   npm run build
+   ```
+4. Set the **Start Command** to:
+   ```sh
+   npm run serve
+   ```
+5. Add an environment variable named `VITE_API_URL` with the base URL of your
+   backend (leave it blank to default to the same origin).
+6. (Optional) Set `MONGODB_URI` if your backend requires a custom MongoDB
+   connection string.
+7. Click **Create Web Service** to deploy.

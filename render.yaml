@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: plate-app
+    rootDir: frontend
+    buildCommand: npm run build
+    startCommand: npm run serve
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+      - key: MONGODB_URI
+        sync: false
