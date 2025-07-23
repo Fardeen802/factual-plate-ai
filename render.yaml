@@ -2,7 +2,7 @@ services:
   - type: web
     name: plate-app
     env: node
-    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm ci
+    buildCommand: ./build.sh
     startCommand: cd backend && npm start
     envVars:
       - key: VITE_API_URL
