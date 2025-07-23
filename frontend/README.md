@@ -47,4 +47,14 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Deployment on Render
 
+Set the `VITE_API_URL` environment variable to the base URL of your backend when deploying.
+If it is not provided, API requests default to the same origin.
+
+Build the frontend and start the Express server with:
+
+```sh
+npm run build
+npm run serve
+```
