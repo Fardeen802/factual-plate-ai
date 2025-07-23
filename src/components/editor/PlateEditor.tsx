@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { EditorComments, Comment } from './EditorComments';
 import { MockAIService } from '@/services/mockAIService';
@@ -23,7 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createPage, getPage, updatePage, deletePage } from '@/services/pageService';
+import { getPage, updatePage } from '@/services/pageService';
+import { debounce } from '@/services/debouce';
 
 export const PlateEditor: React.FC = () => {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -31,7 +32,7 @@ export const PlateEditor: React.FC = () => {
   const [isFactChecking, setIsFactChecking] = useState(false);
   const [activeCommentId, setActiveCommentId] = useState<string>();
   const editorRef = useRef<HTMLDivElement>(null);
-  const [pageId, setPageId] = useState<string | null>(null);
+  const [pageId, setPageId] = useState<string | null>('6880685272487d5a361368e9');
   const [loading, setLoading] = useState(false);
   const [floatingFact, setFloatingFact] = useState<{
     explanation: string;
@@ -140,24 +141,18 @@ export const PlateEditor: React.FC = () => {
       if (pageId) {
         result = await updatePage(pageId, content);
         toast.success('Content updated in database!');
-      } else {
-        result = await createPage(content);
-        setPageId(result._id);
-        toast.success('Content saved to database!');
       }
     } catch (err) {
       toast.error('Failed to save content to database');
     } finally {
       setLoading(false);
     }
-  }, [getEditorContent, pageId]);
+  }, [getEditorContent]);
 
-  const loadContent = useCallback(async () => {
-    if (!pageId) {
-      toast.error('No page ID to load');
-      return;
-    }
-    setLoading(true);
+
+  useEffect(()=>{
+    const fetch = async()=>{
+      setLoading(true);
     try {
       const result = await getPage(pageId);
       if (editorRef.current && result.content) {
@@ -170,7 +165,20 @@ export const PlateEditor: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [pageId]);
+    }
+    fetch();
+  },
+  [])
+  const debouncedSave = useMemo(
+    () =>
+      debounce(() => {
+        const content = getEditorContent();
+        if (content) {
+          updatePage(pageId!, content);
+        }
+      }, 1000),
+    [getEditorContent]
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -272,9 +280,8 @@ export const PlateEditor: React.FC = () => {
                 <Button onClick={saveContent} variant="outline" size="sm" disabled={loading}>
                   {loading ? 'Saving...' : 'Save'}
                 </Button>
-                <Button onClick={loadContent} variant="outline" size="sm" disabled={loading || !pageId}>
-                  {loading ? 'Loading...' : 'Load'}
-                </Button>
+  
+
               </div>
             </div>
 
@@ -286,6 +293,7 @@ export const PlateEditor: React.FC = () => {
               onMouseUp={handleSelectionChange}
               onKeyUp={handleSelectionChange}
               suppressContentEditableWarning={true}
+              onInput={debouncedSave} 
               style={{ minHeight: '600px' }}
               dangerouslySetInnerHTML={{
                 __html: `
